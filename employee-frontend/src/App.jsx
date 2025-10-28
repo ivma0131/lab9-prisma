@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+// Use Vite env var VITE_API_URL for the backend base URL in production.
+// Fallback to http://localhost:4000 for local development.
+const apiBase = import.meta?.env?.VITE_API_URL || 'http://localhost:4000';
+const api = axios.create({ baseURL: apiBase });
+
 function App() {
   const [employees, setEmployees] = useState([]);
   const [form, setForm] = useState({
@@ -14,8 +19,8 @@ function App() {
   useEffect(() => {
     async function fetchEmployees() {
       try {
-        const res = await axios.get('http://localhost:4000/employees');
-        setEmployees(res.data);
+  const res = await api.get('/employees');
+  setEmployees(res.data);
       } catch (err) {
         console.error(err);
       }
@@ -39,7 +44,7 @@ function App() {
         salary: form.salary === '' ? null : Number(form.salary)
       };
 
-      const postRes = await axios.post('http://localhost:4000/employees', payload);
+  const postRes = await api.post('/employees', payload);
 
       // If backend returns the created employee object, append it to state for immediate UI update.
       if (postRes && postRes.data && typeof postRes.data === 'object' && !Array.isArray(postRes.data)) {
@@ -47,7 +52,7 @@ function App() {
         setEmployees(prev => [...prev, postRes.data]);
       } else {
         // Fallback: refetch full list and sort ascending by id so table is ordered bottom-up
-        const res = await axios.get('http://localhost:4000/employees');
+  const res = await api.get('/employees');
         const sorted = Array.isArray(res.data)
           ? res.data.slice().sort((a, b) => (a.employee_id ?? a.id ?? 0) - (b.employee_id ?? b.id ?? 0))
           : res.data;
